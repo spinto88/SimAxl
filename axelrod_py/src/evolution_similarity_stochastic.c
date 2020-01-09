@@ -4,7 +4,7 @@ int active_condition_ss(axl_network *mysys, int i, int j)
 {
         if(mysys->a[i][j] == 1)
         {
-                if((mysys->corr[i][j] > 0.00) && (mysys->corr[i][j] < (mysys->f - EPSILON)))
+                if((mysys->corr[i][j] > EPSILON) && (mysys->corr[i][j] < (mysys->f - EPSILON)))
                         return 1;
         }
 
@@ -66,18 +66,18 @@ int active_links_ss(axl_network *mysys, active_link *list_active_links)
         return 1;
 }
 
-int overlap(axl_network *mysys, double n, double m, double l)
+int overlap(int f, double n, double m, double l)
 {
 	int r;
 	int most_probable_r = 0;
-	double distance = mysys->f;
+	double distance = f*f;
 	double distance_aux;
 
-	for(r = 0; r <= mysys->f; r++)
+	for(r = 0; r <= f; r++)
 	{
-		if(((r >= 0.00) || (r >= (m+n+l-mysys->f)/2)) && ((r <= n)&&(r <= m)&&(r <= l)))
+		if(((r >= 0.00) && (r >= (m+n+l-f)/2)) && ((r <= n)&&(r <= m)&&(r <= l)))
 		{
-			distance_aux = fabs((m-r)*(n-r)*(l-r) - r*(mysys->f-m-n-l+2*r)*(mysys->f-m-n-l+2*r));
+			distance_aux = fabs((m-r)*(n-r)*(l-r) - r*(f-m-n-l+2*r)*(f-m-n-l+2*r));
 			if(distance_aux < distance)
 			{
 				distance = distance_aux;
@@ -127,6 +127,30 @@ int evolution_similarity_stochastic(axl_network *mysys)
 	return 1;
 }
 
+double up_rate(int f, double m, double n, double l)
+{
+	double t;
+	int r = overlap(f,m,n,l);
+	t = ((double)(m-r))/(f-n);
+
+	if(t < EPSILON)
+		t = 0.00;
+
+	return t;
+}
+
+double down_rate(int f, double m, double n, double l)
+{	
+	double t;
+	int r = overlap(f,m,n,l);
+	t = ((double)(l-r))/(f-n);
+	
+	if(t < EPSILON)
+		t = 0.00;
+
+	return t;
+}
+
 int increase_similarity_ss(axl_network *mysys, int i, int j)
 {
 	int k;
@@ -134,6 +158,8 @@ int increase_similarity_ss(axl_network *mysys, int i, int j)
 	double random;
 	int r;
 	double t1, t2;
+
+	srand(mysys->seed);
 
 	r = rand() % mysys->f;
 	if(r < mysys->corr[i][j])
@@ -143,27 +169,42 @@ int increase_similarity_ss(axl_network *mysys, int i, int j)
 			if((k!=i) && (k!=j))
 			{
 
-				random = (double)rand()/RAND_MAX;
+				random = ((double)rand())/RAND_MAX;
 
 				// Tasa de subida
-				t1 = (mysys->corr[j][k] - overlap(mysys, mysys->corr[i][j], mysys->corr[i][k], mysys->corr[j][k]))/(mysys->f - mysys->corr[i][j]);		
+				t1 = up_rate(mysys->f, mysys->corr[j][k], mysys->corr[i][j], mysys->corr[i][k]);
 				// Tasa de bajada
-				t2 = (mysys->corr[j][k] - overlap(mysys, mysys->corr[i][j], mysys->corr[i][k], mysys->corr[j][k]))/(mysys->f - mysys->corr[i][j]);		
-				// Sube con proba tanto
-				if((random / t1) < 1.00)
-					mysys->corr[i][k] += 1.00;
-				// Baja con proba tanto 
-				else if(((random / (t1+t2)) < 1.00) && ((random / t1) > 1.00))
-					mysys->corr[i][k] -= 1.00;
+				t2 = down_rate(mysys->f, mysys->corr[j][k], mysys->corr[i][j], mysys->corr[i][k]);
 
+				// Sube con proba tanto
+				if((random < t1) && (mysys->corr[i][k] < mysys->f - EPSILON))
+				{
+					mysys->corr[i][k] += 1.00;
+					if(mysys->corr[i][k] > mysys->f)
+						mysys->corr[i][k] = mysys->f;
+				}
+
+
+				// Baja con proba tanto 
+				else if((random < (t1+t2)) && (random > t1) && (mysys->corr[i][k] > EPSILON))
+				{
+					mysys->corr[i][k] -= 1.00;
+					if(mysys->corr[i][k] < 0.00)
+						mysys->corr[i][k] = 0.00;
+				}
 
 				mysys->corr[k][i] = mysys->corr[i][k];
 			}
 		}
 
-		mysys->corr[i][j] += 1;
+		mysys->corr[i][j] += 1.00;
+		if(mysys->corr[i][j] > mysys->f)
+			mysys->corr[i][j] = mysys->f;
+
 		mysys->corr[j][i] = mysys->corr[i][j];
 	}	
+
+        mysys->seed = rand();
 
 	return 1;
 }

@@ -82,6 +82,9 @@ class Axl_network(nx.Graph, C.Structure):
     
     def re_init_agents(self, f, q):
 
+	self.f = f
+	self.q = q
+
         for i in range(self.nagents):
             self.agent[i].__init__(f,q)
 
@@ -136,7 +139,7 @@ class Axl_network(nx.Graph, C.Structure):
 
         corr_matrix += corr_matrix.T
         for i in range(self.nagents):
-            corr_matrix[i][i] = 1.00
+            corr_matrix[i][i] = self.f
 
         return corr_matrix
 
@@ -187,12 +190,29 @@ class Axl_network(nx.Graph, C.Structure):
 	else:
 		self.evolution()
 
+    def mean_similarity(self):
+
+        corr_matrix = self.get_corr_matrix()
+	return np.mean(corr_matrix - np.diag(np.ones(corr_matrix.shape[0])))
+   
     def fraction_of_zeros(self):
         pass
 
+    def check_triangle_inequality(self):
+
+        for i in range(self.nagents):
+            for j in range(i+1, self.nagents):
+                for k in range(j+1, self.nagents):
+                    if (self.corr[i][j] + self.f < self.corr[i][k] + self.corr[j][k]):
+			return (i,j,k),(self.corr[i][j], self.corr[i][k], self.corr[j][k])
+		    if (self.corr[i][j] + np.abs(self.corr[i][k] - self.corr[j][k])) > self.f:
+			return (i,j,k),(self.corr[i][j], self.corr[i][k], self.corr[j][k])
+	return 1
+
+
     def save_fragments_distribution(self, fname):
 	 
-        fragment_sizes = [d[1] for d in self.fragments().items()]
+        fragment_sizes = [d for d in self.fragments_size()]
 
         fp = open(fname, 'a')
         fp.write('{},{},'.format(self.f, self.q))

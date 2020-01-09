@@ -4,7 +4,7 @@ int active_condition_sa(axl_network *mysys, int i, int j)
 {
         if(mysys->a[i][j] == 1)
         {
-                if((mysys->corr[i][j] > 0.00) && (mysys->corr[i][j] < (mysys->f - EPSILON)))
+                if((mysys->corr[i][j] > EPSILON) && (mysys->corr[i][j] < (mysys->f - EPSILON)))
                         return 1;
         }
 
@@ -109,12 +109,12 @@ int increase_similarity(axl_network *mysys, int i, int j)
 	int n = mysys->nagents;
 	double aux, factor;
 
-	aux = 2 * mysys->corr[i][j];
+	aux = mysys->corr[i][j] + (mysys->corr[i][j]/mysys->f);
 	if(aux >= mysys->f)
 		aux = mysys->f;	
 	if(aux < mysys->f)
 	{
-		factor = mysys->corr[i][j] / (mysys->f - mysys->corr[i][j]);
+		factor = (mysys->corr[i][j]/mysys->f) / (mysys->f - mysys->corr[i][j]);
 		for(k = 0; k < n; k++)
 		{
 			if((k!=i) && (k!=j))

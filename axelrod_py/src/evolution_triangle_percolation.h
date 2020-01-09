@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "axelrod.h"
 
+#define EPSILON 10E-5
+
 int evolution_triangle_percolation(axl_network *);
 
 #endif

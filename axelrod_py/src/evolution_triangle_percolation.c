@@ -2,7 +2,7 @@
 
 int active_condition_tp(axl_network *mysys, int i, int j)
 {
-        if((mysys->a[i][j] == 1) && (mysys->corr[i][j] > 0.00))
+        if((mysys->a[i][j] == 1) && (mysys->corr[i][j] > EPSILON))
 		return 1;
 	else
 	        return 0;
