@@ -112,6 +112,12 @@ class Axl_network(nx.Graph, C.Structure):
             for step in range(steps):
                 libc.evolution_similarity_average(C.byref(self))
 
+	elif self.model == 'Similarity_stochastic':
+            libc.evolution_similarity_stochastic.argtypes = [C.POINTER(Axl_network)]
+
+            for step in range(steps):
+                libc.evolution_similarity_stochastic(C.byref(self))
+
 	elif self.model == 'Triangle_percolation':
             libc.evolution_triangle_percolation.argtypes = [C.POINTER(Axl_network)]
 
@@ -163,6 +169,12 @@ class Axl_network(nx.Graph, C.Structure):
 		libc.is_there_active_links_sa.restype = C.c_int
 
 		return libc.is_there_active_links_sa(C.byref(self))
+
+	elif self.model == "Similarity_stochastic":
+		libc.is_there_active_links_ss.argtypes = [C.POINTER(Axl_network)]
+		libc.is_there_active_links_ss.restype = C.c_int
+
+		return libc.is_there_active_links_ss(C.byref(self))
 
     def evol2convergence(self):
 

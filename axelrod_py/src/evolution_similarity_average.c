@@ -44,7 +44,7 @@ int is_there_active_links_sa(axl_network *mysys)
         return 0;
 }
 
-int active_links(axl_network *mysys, active_link *list_active_links)
+int active_links_sa(axl_network *mysys, active_link *list_active_links)
 {
         int i, j, k;
         int n = mysys->nagents;
@@ -81,7 +81,7 @@ int evolution_similarity_average(axl_network *mysys)
 	else
 	{
 		list_active_links = (active_link *)malloc(sizeof(active_link) * number_active_links);
-		active_links(mysys, list_active_links);
+		active_links_sa(mysys, list_active_links);
 	}
 			
 	while(step_n < number_active_links)

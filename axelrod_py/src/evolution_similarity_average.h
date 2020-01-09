@@ -8,7 +8,7 @@
 #define EPSILON 10E-5
 
 int increase_similarity(axl_network *, int, int);
-int is_there_active_links(axl_network *);
+int is_there_active_links_ss(axl_network *);
 
 int evolution_similarity_average(axl_network *);
 
